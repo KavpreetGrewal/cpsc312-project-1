@@ -5,7 +5,7 @@ module Lib ( createUser
 
 -- import Note (Note)
 -- import qualified Data.Map as Map
-import Crypto.Hash (SHA256 (..), hash)
+import Crypto.Hash (SHA256 (..), hash, Digest)
 import qualified Data.ByteString.Char8 as BS
 
 
