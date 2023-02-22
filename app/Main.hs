@@ -1,6 +1,7 @@
-module Main (main) where
-
+import Database (setupDB)
 import Lib (notesApp)
 
 main :: IO ()
-main = notesApp
+main = do
+    setupDB
+    notesApp

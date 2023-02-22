@@ -6,7 +6,7 @@ module Note
     -- , deleteNoteFromDb
     ) where
 
-import Lib (User)
+import UserModel (User)
 import Data.List (find, delete)
 
 type NoteS = String
