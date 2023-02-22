@@ -1,9 +1,10 @@
 module Lib ( createUser  
-           , login
-           , logout
+          --  , login
+          --  , logout
+           , notesApp
            ) where
 
--- import Note (Note)
+import Note (NoteS, Note)
 -- import qualified Data.Map as Map
 import Crypto.Hash (SHA256 (..), hash, Digest)
 import qualified Data.ByteString.Char8 as BS
@@ -19,7 +20,7 @@ data User = User
 
 hashPassword :: String -> IO String
 hashPassword password = do
-  let passwordBytes = (BS.pack password) (BS.pack file)        
+  let passwordBytes = (BS.pack password) 
   let hashedBytes = hash passwordBytes :: Digest SHA256
   return $ show hashedBytes
 
@@ -32,14 +33,28 @@ createUser username password = do
     -- saveUser user -- Database function needs to be implemented later
     return user
 
+-- login :: String -> String -> IO (Maybe User)
+-- login username password = do
+--     -- fetch user from database
+--     maybeUser <- getUser username
+--     case maybeUser of
+--         Just user -> do
+--             let hashedPassword = password user
+--             if verifyPassword hashedPassword password
+--                 then return $ Just user
+--                 else return Nothing
+--         Nothing -> return Nothing
+
 --------------------------------------------------------------------------------------------------------------
 
+noteS :: NoteS
+noteS = "This is a note"
+
 -- note :: Note
--- note = "This is a note"
+-- note = Note "math" "1+1=2"
 
--- notesApp :: IO ()
--- notesApp = do
---     putStrLn "Welcome to the notes app!"
---     putStrLn note
-
+notesApp :: IO ()
+notesApp = do
+    putStrLn "Welcome to the notes app!"
+    putStrLn noteS
 
