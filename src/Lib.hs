@@ -4,25 +4,15 @@ module Lib (
   notesApp
 ) where
 
-import Note (NoteS, Note)
+import Note (Note(..), createNote, getNoteTitle)
 -- import qualified Data.Map as Map
-
--- login :: String -> String -> IO (Maybe User)
--- login username password = do
---     -- fetch user from database
---     maybeUser <- getUser username
---     case maybeUser of
---         Just user -> do
---             let hashedPassword = password user
---             if verifyPassword hashedPassword password
---                 then return $ Just user
---                 else return Nothing
---         Nothing -> return Nothing
 
 --------------------------------------------------------------------------------------------------------------
 
-noteS :: NoteS
-noteS = "This is a note"
+-- noteS :: NoteS
+-- noteS = "This is a note"
+
+data MenuOption = CreateNote | EditNote | DeleteNote | Quit deriving (Show, Eq)
 
 -- note :: Note
 -- note = Note "math" "1+1=2"
@@ -30,5 +20,15 @@ noteS = "This is a note"
 notesApp :: IO ()
 notesApp = do
     putStrLn "Welcome to the notes app!"
-    putStrLn noteS
+    menuOption <- getUserOption
+    case menuOption of
+        CreateNote -> do
+            username <- getUsername
+            password <- getPassword
+            user <- createUser username password
+            noteTitle <- getNoteTitle
+            noteContent <- getNoteContent
+            note <- createNote user noteTitle noteContent
+            putStrLn "Note created!"
+            notesApp
 
