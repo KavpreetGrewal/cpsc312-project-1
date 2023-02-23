@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- TODO: password protect notes
+-- TODO: get info about a note: time, word count, most used words
+
 module NoteModel (
     Note(..),
     getNoteFromDB,
@@ -78,7 +81,7 @@ shareNote email title emailToShare = do
     note <- getNoteFromDB email title
     case note of
         Just note -> do
-            let (Note title content createdBy) = note
+            let (Note title content _) = note
             execute conn "INSERT OR IGNORE INTO notes (title, content, created_by) VALUES (?,?,?)" (Note title content emailToShare)
             close conn
             return True
