@@ -33,3 +33,8 @@ editNote username title newTitle content createdBy = do
     note <- Note newTitle content createdBy
     replaceNoteInDB note
     return note
+
+deleteNote :: String -> String -> IO Bool
+deleteNote email title = do
+    deleteNoteFromDB email title
+    return

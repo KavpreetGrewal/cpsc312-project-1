@@ -37,13 +37,20 @@ notesApp = do
             putStrLn "Note created!"
             notesApp
         EditNote -> do
-            --username <- getUsername
+            username <- findEmail                 
+            noteTitle <- findNoteTitle
             newNoteTitle <- editNoteTitle
             newNoteContent <- editNoteContent
-            --createdBy <- editTime
             note <- editNote username noteTitle newNoteTitle newNoteContent createdBy
             putStrLn "Note edited!"
             notesApp 
+        DeleteNote -> do
+            username <- findEmail
+            noteTitle <- findNoteTitle
+            note <- deleteNote username noteTitle 
+            putStrLn "Note deleted!"
+            notesApp
+
 
 
 getUserOption :: IO MenuOption
@@ -89,7 +96,7 @@ getNoteContent = do
 
 getUsername :: IO String
 getUsername = do
-    putStrLn "Enter your username:"
+    putStrLn "Enter your username:"         -- should we make it so that username has to be an email?
     getLine
 
 getTime :: IO String 
@@ -108,27 +115,26 @@ editNoteTitle = do
           then
             ???     
             -}      
+
+findEmail :: IO String 
+findEmail = do
+  putStrLn "Please enter your email"
+  getLine
+
+findNoteTitle :: IO String
+findNoteTitle = do
+  putStrLn "Please enter the title of the note you would like to select."
+  getLine
     
 editNoteTitle :: IO String
 editNoteTitle = do
   putStrLn "Please enter the new title for your note"
-  get noteTitle
+  getLine
 
 
 editNoteContent :: IO String
 editNoteContent = do
   putStrLn "Please enter the new content you would like to save for this note"
-  getNoteContent
+  getLine
     
 
-{- editUsername :: IO String
-editUsername = do
-    putStrLn "Enter your username:"
-    getLine
-
-editTime :: IO String 
-editTime = do
-  putStrLn "Enter the date"
-  getLine
-
- -}
