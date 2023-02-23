@@ -25,3 +25,11 @@ getNoteInfo email title = do
             let wordCount = getWordCount content
             let mostUsedWords = getMostUsedWords content
             return (wordCount, mostUsedWords)
+
+
+editNote :: String -> String -> String -> String -> String -> IO Note
+editNote username title newTitle content createdBy = do
+    note <- getNoteFromDB username title
+    note <- Note newTitle content createdBy
+    replaceNoteInDB note
+    return note
