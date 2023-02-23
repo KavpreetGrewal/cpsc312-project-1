@@ -6,7 +6,9 @@ module NoteModel (
     getAllNotesFromDB,
     saveNoteToDB,
     deleteNoteFromDB,
-    replaceNoteInDB
+    replaceNoteInDB,
+    shareNote,
+    searchNotesByPhrase
 ) where
 
 import Database.SQLite.Simple
@@ -68,3 +70,23 @@ replaceNoteInDB (Note title content createdBy) = do
             close conn
             return True
         Nothing -> return False
+
+
+shareNote :: String -> String -> String -> IO Bool
+shareNote email title emailToShare = do
+    conn <- open "notes.db"
+    note <- getNoteFromDB email title
+    case note of
+        Just note -> do
+            let (Note title content createdBy) = note
+            execute conn "INSERT OR IGNORE INTO notes (title, content, created_by) VALUES (?,?,?)" (Note title content emailToShare)
+            close conn
+            return True
+        Nothing -> return False
+
+searchNotesByPhrase :: String -> String -> IO [Note]
+searchNotesByPhrase email phrase = do
+    conn <- open "notes.db"
+    r <- query conn "SELECT title, content, created_by from notes WHERE created_by = ? AND content LIKE ?" (email, "%" ++ phrase ++ "%") :: IO [Note]
+    close conn
+    return r
