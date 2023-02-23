@@ -3,7 +3,7 @@ module Note (
     createNote
 ) where
 
-import NoteModel (Note(..), getNoteFromDB)
+import NoteModel (Note(..), getNoteFromDB, saveNoteToDB)
 import UserModel (User(..))
 import Utils (getWordCount, getMostUsedWords)
 
