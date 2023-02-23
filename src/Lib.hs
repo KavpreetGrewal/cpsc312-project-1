@@ -36,6 +36,14 @@ notesApp = do
             note <- createNote user noteTitle noteContent createdBy
             putStrLn "Note created!"
             notesApp
+       {-  EditNote -> do
+            username <- getUsername
+            noteTitle <- editNoteTitle
+            noteContent <- editNoteContent
+            createdBy <- editTime
+            note <- editNote username noteTitle noteContent createdBy
+            putStrLn "Note edited!"
+            notesApp -}
 
 
 getUserOption :: IO MenuOption
@@ -88,3 +96,40 @@ getTime :: IO String
 getTime = do
   putStrLn "Enter the date"
   getLine
+
+{- editNoteTitle :: IO String
+editNoteTitle = do
+    putStrLn "Would you like to edit the title? (Enter Y for yes, N for no)"
+    response <- getLine
+    if (response == "Y")
+      then
+        getNoteTitle
+        else if (response == "N")
+          then
+            ???           
+    
+
+editNoteContent :: IO String
+editNoteContent = do
+  putStrLn "Would you like to edit the content? (Enter Y for yes, N for no)"
+  getResponse <- getLine
+  if (response == "Y")
+    then
+      getNoteContent
+      else if (response == "N")
+        then
+          ???
+
+    
+
+editUsername :: IO String
+editUsername = do
+    putStrLn "Enter your username:"
+    getLine
+
+editTime :: IO String 
+editTime = do
+  putStrLn "Enter the date"
+  getLine
+
+ -}
