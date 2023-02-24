@@ -4,7 +4,7 @@ module Lib (
   notesApp
 ) where
 
-import NoteModel (Note(..), getAllNotesFromDB, replaceNoteInDB)
+import NoteModel (Note(..), getAllNotesFromDB, replaceNoteInDB, deleteNoteFromDB)
 import Note (createNote)
 import User (createUser)
 import UserModel (User(..), getUserFromDB)
@@ -52,16 +52,17 @@ notesApp = do
             replaceNoteInDB updatedNote
             putStrLn "Note updated!"
             notesApp
-        -- DeleteNote -> do
-        --     email <- findEmail
-        --     noteTitle <- findNoteTitle
-        --     note <- deleteNote username noteTitle 
-        --     putStrLn "Note deleted!"
-        --     notesApp
-        -- Quit -> do
-        --     putStrLn "You have quit the notes app"
-        --     return
-
+        DeleteNote -> do
+            email <- getEmail
+            notes <- getAllNotesFromDB email
+            noteIndex <- getNoteIndex notes
+            let note = notes !! noteIndex
+            noteTitle <- getNoteTitleFromNote note
+            deleteNoteFromDB email noteTitle
+            putStrLn "Note deleted!"
+            notesApp
+        Quit -> do
+            putStrLn "You have quit the notes app"
 
 
 getUserOption :: IO MenuOption
@@ -100,6 +101,10 @@ getNoteTitle = do
     putStrLn "Enter the note title:"
     getLine
 
+getNoteTitleFromNote :: Note -> IO String
+getNoteTitleFromNote note = return (title note)
+
+
 getNoteContent :: IO String
 getNoteContent = do
     putStrLn "Enter the note content:"
@@ -112,7 +117,7 @@ getNoteIndex notes = do
     putStr "Enter note number: "
     input <- getLine
     case readMaybe input of
-        Just index -> if index >= 1 && index <= length notes
+        Just index -> if index >= 0 && index <= length notes
             then return index
             else putStrLn "Invalid note number." >> getNoteIndex notes
         Nothing -> putStrLn "Invalid input. Enter a number." >> getNoteIndex notes
@@ -120,7 +125,7 @@ getNoteIndex notes = do
 printNotes :: [Note] -> IO ()
 printNotes notes = do
     putStrLn "Your notes:"
-    mapM_ printNoteWithIndex (zip [1..] notes)
+    mapM_ printNoteWithIndex (zip [0..] notes)
 
 printNoteWithIndex :: (Int, Note) -> IO ()
 printNoteWithIndex (index, note) = do
@@ -130,7 +135,7 @@ printNoteWithIndex (index, note) = do
 
 getEmail :: IO String
 getEmail = do
-    putStrLn "Enter your email:"         
+    putStrLn "Please enter your email:"         
     getLine
 
 getTime :: IO String 
@@ -150,15 +155,6 @@ editNoteTitle = do
             ???     
             -}   
 
-
-
-
-
-
-findEmail :: IO String 
-findEmail = do
-  putStrLn "Please enter your email"
-  getLine
 
 findNoteTitle :: IO String
 findNoteTitle = do
