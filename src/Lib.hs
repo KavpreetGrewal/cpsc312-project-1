@@ -41,7 +41,8 @@ notesApp = do
             noteTitle <- findNoteTitle
             newNoteTitle <- editNoteTitle
             newNoteContent <- editNoteContent
-            note <- editNote username noteTitle newNoteTitle newNoteContent createdBy
+            dateModified <- getTime
+            note <- editNote username noteTitle newNoteTitle newNoteContent dateModified
             putStrLn "Note edited!"
             notesApp 
         DeleteNote -> do
@@ -50,6 +51,9 @@ notesApp = do
             note <- deleteNote username noteTitle 
             putStrLn "Note deleted!"
             notesApp
+        Quit -> do
+            putStrLn "You have quit the notes app"
+            return
 
 
 
@@ -101,7 +105,7 @@ getUsername = do
 
 getTime :: IO String 
 getTime = do
-  putStrLn "Enter the date"
+  putStrLn "Enter today's date: "
   getLine
 
 {- editNoteTitle :: IO String
@@ -123,18 +127,18 @@ findEmail = do
 
 findNoteTitle :: IO String
 findNoteTitle = do
-  putStrLn "Please enter the title of the note you would like to select."
+  putStrLn "Please enter the title of the note you would like to select: "
   getLine
     
 editNoteTitle :: IO String
 editNoteTitle = do
-  putStrLn "Please enter the new title for your note"
+  putStrLn "Please enter the new title for your note: "
   getLine
 
 
 editNoteContent :: IO String
 editNoteContent = do
-  putStrLn "Please enter the new content you would like to save for this note"
+  putStrLn "Please enter the new content you would like to save for this note: "
   getLine
     
 

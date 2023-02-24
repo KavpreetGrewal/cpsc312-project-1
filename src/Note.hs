@@ -28,9 +28,9 @@ getNoteInfo email title = do
 
 
 editNote :: String -> String -> String -> String -> String -> IO Note
-editNote username title newTitle content createdBy = do
+editNote username title newTitle newContent dateModified = do
     note <- getNoteFromDB username title
-    note <- Note newTitle content createdBy
+    note <- Note newTitle newContent dateModified
     replaceNoteInDB note
     return note
 
