@@ -4,11 +4,13 @@ module Lib (
   notesApp
 ) where
 
-import Note (Note(..), createNote)
+import NoteModel (Note(..), getAllNotesFromDB, replaceNoteInDB)
+import Note (createNote)
 import User (createUser)
-import UserModel (User(..))
+import UserModel (User(..), getUserFromDB)
 import Control.Exception (bracket_)
 import System.IO (hFlush, stdout, stdin, hSetEcho, hGetEcho)
+import Data.List (intercalate)
 -- import qualified Data.Map as Map
 
 --------------------------------------------------------------------------------------------------------------
@@ -29,7 +31,7 @@ notesApp = do
         CreateNote -> do
             email <- getEmail
             password <- getPassword
-            user <- createUser username password
+            user <- createUser email password
             noteTitle <- getNoteTitle
             noteContent <- getNoteContent
             createdBy <- getTime
@@ -37,14 +39,18 @@ notesApp = do
             putStrLn "Note created!"
             notesApp
         EditNote -> do
-            email <- findEmail                 
-            noteTitle <- findNoteTitle
-            newNoteTitle <- editNoteTitle
-            newNoteContent <- editNoteContent
+            email <- getEmail                 
+            user <- getUserFromDB email       -- Just needs email right?
+            notes <- getAllNotesFromDB email  -- Just needs email right?
+            noteIndex <- getNoteIndex
+            let note = notes !! noteIndex
+            newTitle <- editNoteTitle
+            newContent <- editNoteContent
             dateModified <- getTime
-            note <- editNote username noteTitle newNoteTitle newNoteContent dateModified
-            putStrLn "Note edited!"
-            notesApp 
+            let updatedNote = note { title = newTitle, content = newContent, createdBy = dateModified}
+            replaceNoteInDB updatedNote
+            putStrLn "Note updated!"
+            notesApp
         DeleteNote -> do
             email <- findEmail
             noteTitle <- findNoteTitle
@@ -98,8 +104,31 @@ getNoteContent = do
     putStrLn "Enter the note content:"
     getLine
 
+getNoteIndex :: [Note] -> IO Int
+getNoteIndex notes = do
+    putStrLn "Select a note to edit or delete:"
+    printNotes notes
+    putStr "Enter note number: "
+    input <- getLine
+    case readMaybe input of
+        Just index -> if index >= 1 && index <= length notes
+            then return index
+            else putStrLn "Invalid note number." >> getNoteIndex notes
+        Nothing -> putStrLn "Invalid input. Enter a number." >> getNoteIndex notes
+
+printNotes :: [Note] -> IO ()
+printNotes notes = do
+    putStrLn "Your notes:"
+    mapM_ printNoteWithIndex (zip [1..] notes)
+
+printNoteWithIndex :: (Int, Note) -> IO ()
+printNoteWithIndex (index, note) = do
+    putStrLn $ show index ++ ". " ++ title note
+    putStrLn $ content note
+    putStrLn ""
+
 getEmail :: IO String
-getUsername = do
+getEmail = do
     putStrLn "Enter your email:"         
     getLine
 
@@ -119,7 +148,11 @@ editNoteTitle = do
           then
             ???     
             -}   
-   
+
+
+
+
+
 
 findEmail :: IO String 
 findEmail = do

@@ -3,7 +3,7 @@ module Note (
     createNote
 ) where
 
-import NoteModel (Note(..), getNoteFromDB, saveNoteToDB)
+import NoteModel (Note(..), getNoteFromDB, saveNoteToDB, deleteNoteFromDB, replaceNoteInDB)
 import UserModel (User(..))
 import Utils (getWordCount, getMostUsedWords)
 
@@ -27,14 +27,14 @@ getNoteInfo email title = do
             return (wordCount, mostUsedWords)
 
 
-editNote :: String -> String -> String -> String -> String -> IO Note
-editNote username title newTitle newContent dateModified = do
-    note <- getNoteFromDB username title
-    note <- Note newTitle newContent dateModified
-    replaceNoteInDB note
-    return note
+-- editNote :: String -> String -> String -> String -> String -> IO Note
+-- editNote username title newTitle newContent dateModified = do
+--     note <- getNoteFromDB username title
+--     note <- Note newTitle newContent dateModified
+--     replaceNoteInDB note
+--     return note
 
-deleteNote :: String -> String -> IO Bool
-deleteNote email title = do
-    deleteNoteFromDB email title
-    return
+-- deleteNote :: String -> String -> IO Bool
+-- deleteNote email title = do
+--     deleteNoteFromDB email title
+--     return
