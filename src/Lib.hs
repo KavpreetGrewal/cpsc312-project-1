@@ -11,6 +11,7 @@ import UserModel (User(..), getUserFromDB)
 import Control.Exception (bracket_)
 import System.IO (hFlush, stdout, stdin, hSetEcho, hGetEcho)
 import Data.List (intercalate)
+import Text.Read (readMaybe)
 -- import qualified Data.Map as Map
 
 --------------------------------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ notesApp = do
             email <- getEmail                 
             user <- getUserFromDB email       -- Just needs email right?
             notes <- getAllNotesFromDB email  -- Just needs email right?
-            noteIndex <- getNoteIndex
+            noteIndex <- getNoteIndex notes
             let note = notes !! noteIndex
             newTitle <- editNoteTitle
             newContent <- editNoteContent
@@ -51,15 +52,15 @@ notesApp = do
             replaceNoteInDB updatedNote
             putStrLn "Note updated!"
             notesApp
-        DeleteNote -> do
-            email <- findEmail
-            noteTitle <- findNoteTitle
-            note <- deleteNote username noteTitle 
-            putStrLn "Note deleted!"
-            notesApp
-        Quit -> do
-            putStrLn "You have quit the notes app"
-            return
+        -- DeleteNote -> do
+        --     email <- findEmail
+        --     noteTitle <- findNoteTitle
+        --     note <- deleteNote username noteTitle 
+        --     putStrLn "Note deleted!"
+        --     notesApp
+        -- Quit -> do
+        --     putStrLn "You have quit the notes app"
+        --     return
 
 
 
