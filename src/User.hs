@@ -15,8 +15,8 @@ hashPassword password = do
     return $ show hashedBytes
 
 createUser :: String -> String -> IO User
-createUser username password = do
+createUser email password = do
     hashedPassword <- hashPassword password
-    let user = User username hashedPassword
+    let user = User email hashedPassword
     saveUserToDB user
     return user

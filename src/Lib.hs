@@ -27,7 +27,7 @@ notesApp = do
     menuOption <- getUserOption
     case menuOption of
         CreateNote -> do
-            username <- getUsername
+            email <- getEmail
             password <- getPassword
             user <- createUser username password
             noteTitle <- getNoteTitle
@@ -37,7 +37,7 @@ notesApp = do
             putStrLn "Note created!"
             notesApp
         EditNote -> do
-            username <- findEmail                 
+            email <- findEmail                 
             noteTitle <- findNoteTitle
             newNoteTitle <- editNoteTitle
             newNoteContent <- editNoteContent
@@ -46,7 +46,7 @@ notesApp = do
             putStrLn "Note edited!"
             notesApp 
         DeleteNote -> do
-            username <- findEmail
+            email <- findEmail
             noteTitle <- findNoteTitle
             note <- deleteNote username noteTitle 
             putStrLn "Note deleted!"
@@ -98,9 +98,9 @@ getNoteContent = do
     putStrLn "Enter the note content:"
     getLine
 
-getUsername :: IO String
+getEmail :: IO String
 getUsername = do
-    putStrLn "Enter your username:"         -- should we make it so that username has to be an email?
+    putStrLn "Enter your email:"         
     getLine
 
 getTime :: IO String 
@@ -118,7 +118,8 @@ editNoteTitle = do
         else if (response == "N")
           then
             ???     
-            -}      
+            -}   
+   
 
 findEmail :: IO String 
 findEmail = do
