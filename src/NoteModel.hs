@@ -1,8 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- TODO: password protect notes
--- TODO: get info about a note: time, word count, most used words
-
 module NoteModel (
     Note(..),
     getNoteFromDB,
@@ -10,8 +7,8 @@ module NoteModel (
     saveNoteToDB,
     deleteNoteFromDB,
     replaceNoteInDB,
-    shareNote,
-    searchNotesByPhrase
+    transferNoteInDB,
+    searchNotesByPhraseDB
 ) where
 
 import Database.SQLite.Simple
@@ -52,43 +49,27 @@ saveNoteToDB (Note title content createdBy) = do
             close conn
             return True
 
-deleteNoteFromDB :: String -> String -> IO Bool
+deleteNoteFromDB :: String -> String -> IO ()
 deleteNoteFromDB email title = do
     conn <- open "notes.db"
-    note <- getNoteFromDB email title
-    case note of
-        Just _ -> do
-            execute conn "DELETE FROM notes WHERE created_by = ? AND title = ?" (email, title)
-            close conn
-            return True
-        Nothing -> return False
+    execute conn "DELETE FROM notes WHERE created_by = ? AND title = ?" (email, title)
+    close conn
 
-replaceNoteInDB :: Note -> IO Bool
-replaceNoteInDB (Note title content createdBy) = do
+replaceNoteInDB :: String -> Note -> IO ()
+replaceNoteInDB oldTitle (Note title content createdBy) = do
     conn <- open "notes.db"
-    note <- getNoteFromDB createdBy title
-    case note of
-        Just _ -> do
-            execute conn "UPDATE notes SET content = ? WHERE created_by = ? AND title = ?" (content, createdBy, title)
-            close conn
-            return True
-        Nothing -> return False
+    execute conn "UPDATE notes SET title = ?, content = ? WHERE created_by = ? AND title = ?" (title, content, createdBy, oldTitle)
+    close conn
 
 
-shareNote :: String -> String -> String -> IO Bool
-shareNote email title emailToShare = do
+transferNoteInDB :: Note -> String -> IO ()
+transferNoteInDB (Note title content _) recepientEmail = do
     conn <- open "notes.db"
-    note <- getNoteFromDB email title
-    case note of
-        Just note -> do
-            let (Note title content _) = note
-            execute conn "INSERT OR IGNORE INTO notes (title, content, created_by) VALUES (?,?,?)" (Note title content emailToShare)
-            close conn
-            return True
-        Nothing -> return False
+    execute conn "INSERT OR IGNORE INTO notes (title, content, created_by) VALUES (?,?,?)" (Note title content recepientEmail)
+    close conn
 
-searchNotesByPhrase :: String -> String -> IO [Note]
-searchNotesByPhrase email phrase = do
+searchNotesByPhraseDB :: String -> String -> IO [Note]
+searchNotesByPhraseDB email phrase = do
     conn <- open "notes.db"
     r <- query conn "SELECT title, content, created_by from notes WHERE created_by = ? AND content LIKE ?" (email, "%" ++ phrase ++ "%") :: IO [Note]
     close conn

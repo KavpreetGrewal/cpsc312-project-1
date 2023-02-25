@@ -1,7 +1,10 @@
 module Utils (
     cleanString,
     getWordCount,
-    getMostUsedWords
+    getMostUsedWords,
+    getUsernameFromEmail,
+    checkEmailFormat,
+    checkLength
 ) where
 
 import qualified Data.Map as Map
@@ -19,16 +22,26 @@ getWordCount :: String -> Int
 getWordCount content = length $ words content
 
 addWordsToMap :: Map.Map String Int -> [String] -> Map.Map String Int
-addWordsToMap map [] = map
-addWordsToMap map (word:words) = let
-    count = Map.findWithDefault 0 word map
-    in addWordsToMap (Map.insert word (count + 1) map) words
+addWordsToMap m [] = m
+addWordsToMap m (word:lst) = let
+    count = Map.findWithDefault 0 word m
+    in addWordsToMap (Map.insert word (count + 1) m) lst
 
 getMostUsedWords :: String -> [(String, Int)]
 getMostUsedWords [] = []
 getMostUsedWords content = let
     wordsList = words $ cleanString content
-    map = Map.empty
-    mapList = Map.toList (addWordsToMap map wordsList)
+    m = Map.empty
+    mapList = Map.toList (addWordsToMap m wordsList)
     sortedMapList = sortBy (\(_, a) (_, b) -> compare b a) mapList
-    in take 10 sortedMapList
+    in take 5 sortedMapList
+
+getUsernameFromEmail :: String -> String
+getUsernameFromEmail email = takeWhile (/= '@') email
+
+checkEmailFormat :: String -> Bool
+checkEmailFormat email = '@' `elem` email
+
+checkLength :: String -> Int -> Int -> Bool
+checkLength string minL maxL = len <= maxL && len >= minL
+    where len = length string

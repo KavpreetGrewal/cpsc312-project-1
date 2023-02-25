@@ -3,6 +3,7 @@
 module UserModel (
     User(..),
     getUserFromDB,
+    loginUserFromDB,
     saveUserToDB,
     deleteUserFromDB,
     updateUserInDB  
@@ -23,6 +24,15 @@ getUserFromDB :: String -> IO (Maybe User)
 getUserFromDB email = do
     conn <- open "notes.db"
     r <- query conn "SELECT * from users WHERE email = ?" (Only email) :: IO [User]
+    close conn
+    return $ case r of
+        [] -> Nothing
+        (user:_) -> Just user
+
+loginUserFromDB :: String -> String -> IO (Maybe User)
+loginUserFromDB email password= do
+    conn <- open "notes.db"
+    r <- query conn "SELECT * from users WHERE email = ? AND password = ?" (email, password) :: IO [User]
     close conn
     return $ case r of
         [] -> Nothing

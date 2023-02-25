@@ -1,199 +1,240 @@
-module Lib (  
---  login,
---  logout,
-  notesApp
-) where
+module Lib (notesApp) where
 
-import NoteModel (Note(..), getAllNotesFromDB, replaceNoteInDB, deleteNoteFromDB)
-import Note (createNote)
-import User (createUser)
-import UserModel (User(..), getUserFromDB)
-import Control.Exception (bracket_)
-import System.IO (hFlush, stdout, stdin, hSetEcho, hGetEcho)
-import Data.List (intercalate)
+import System.Exit (exitSuccess)
 import Text.Read (readMaybe)
--- import qualified Data.Map as Map
 
---------------------------------------------------------------------------------------------------------------
+import Auth (loginOrRegisterUser)
+import NoteModel (Note(..))
+import Note (
+    createNote,
+    checkIfNoteExists,
+    getListOfNotes,
+    getNote,
+    getNoteInfo,
+    searchNotesByPhrase,
+    editNote,
+    deleteNote, shareNote)
+import UserModel (User(..))
 
--- noteS :: NoteS
--- noteS = "This is a note"
-
-data MenuOption = CreateNote | EditNote | DeleteNote | Quit deriving (Show, Eq)
-
--- note :: Note
--- note = Note "math" "1+1=2"
+data MenuOption = CreateNote | EditNote | ViewNotes | SearchNotes | DeleteNote | ShareNote | Quit deriving (Show, Eq)
 
 notesApp :: IO ()
 notesApp = do
     putStrLn "Welcome to the notes app!"
     user <- loginOrRegisterUser
-    menuOption <- getUserOption
-    case menuOption of
-        CreateNote -> do
-            email <- getEmail
-            password <- getPassword
-            -- user <- createUser email password
-            noteTitle <- getNoteTitle
-            noteContent <- getNoteContent
-            createdBy <- getTime
-            note <- createNote user noteTitle noteContent createdBy
-            putStrLn "Note created!"
-            notesApp
-        EditNote -> do
-            email <- getEmail                 
-            user <- getUserFromDB email       -- Just needs email right?
-            notes <- getAllNotesFromDB email  -- Just needs email right?
-            noteIndex <- getNoteIndex notes
-            let note = notes !! noteIndex
-            newTitle <- editNoteTitle
-            newContent <- editNoteContent
-            dateModified <- getTime
-            let updatedNote = note { title = newTitle, content = newContent, createdBy = dateModified}
-            replaceNoteInDB updatedNote
-            putStrLn "Note updated!"
-            notesApp
-        DeleteNote -> do
-            email <- getEmail
-            notes <- getAllNotesFromDB email
-            noteIndex <- getNoteIndex notes
-            let note = notes !! noteIndex
-            noteTitle <- getNoteTitleFromNote note
-            deleteNoteFromDB email noteTitle
-            putStrLn "Note deleted!"
-            notesApp
-        Quit -> do
-            putStrLn "You have quit the notes app"
-
-loginOrRegisterUser :: IO User
-loginOrRegisterUser = do
-    putStrLn "Please choose an option:"
-    putStrLn "1. Login"
-    putStrLn "2. Register"
-    input <- getLine
-    case input of
-        "1" -> do
-            email <- getEmail
-            password <- getPassword
-            maybeUser <- getUserFromDB email
-            case maybeUser of
-              Just user -> putStrLn "You are logged in!" >> return user
-              Nothing -> putStrLn "Invalid email or password." >> loginOrRegisterUser
-
-        "2" -> do
-            email <- getEmail
-            password <- getPassword
-            user <- createUser email password
-            putStrLn "User created!"
-            return user
-        _ -> putStrLn "Invalid input." >> loginOrRegisterUser
-
+    mainMenu user
 
 getUserOption :: IO MenuOption
 getUserOption = do
     putStrLn "What would you like to do?"
-    putStrLn "1. Create a note"
-    putStrLn "2. Edit a note"
-    putStrLn "3. Delete a note"
-    putStrLn "4. Quit"
+    putStrLn 
+        "1. Create a note  |  2. Edit a note  | 3. View notes  |  4. Search notes  |\
+        \  5. Delete a note  | 6. Share a note |  7. Quit"
     input <- getLine
     case input of
         "1" -> return CreateNote
         "2" -> return EditNote
-        "3" -> return DeleteNote
-        "4" -> return Quit
-        _   -> do
+        "3" -> return ViewNotes
+        "4" -> return SearchNotes
+        "5" -> return DeleteNote
+        "6" -> return ShareNote
+        "7" -> return Quit
+        _ -> do
             putStrLn "Invalid input, please try again."
             getUserOption
 
-getPassword :: IO String
-getPassword = do
-    putStr "Enter password: "
-    hFlush stdout
-    pass <- withEcho False getLine
-    putStrLn ""
-    return pass
+mainMenu :: User -> IO ()
+mainMenu user = do
+    menuOption <- getUserOption
+    case menuOption of
+        CreateNote -> createNoteOption user
+        EditNote -> editNoteOption user
+        ViewNotes -> viewNotesOption user
+        SearchNotes -> searchNotesOption user
+        DeleteNote -> deleteNoteOption user
+        ShareNote -> shareNoteOption user
+        Quit -> do
+            putStrLn "You have quit the notes app"
+            exitSuccess
 
-withEcho :: Bool -> IO a -> IO a
-withEcho echo action = do
-    old <- hGetEcho stdin
-    bracket_ (hSetEcho stdin echo) (hSetEcho stdin old) action
+
+{-
+    Menu option handlers
+-}
+createNoteOption :: User -> IO ()
+createNoteOption user@(User email _) = do
+    noteTitle <- getNoteTitle email
+    noteContent <- getNoteContent
+    res <- createNote user noteTitle noteContent
+    case res of
+        Nothing -> putStrLn "Note could not be saved. Please try again." >> mainMenu user
+        Just _ ->  putStrLn ("The note titled \"" ++ noteTitle ++ "\" has been created!\n") >> mainMenu user
 
 
-getNoteTitle :: IO String
-getNoteTitle = do
-    putStrLn "Enter the note title:"
-    getLine
+editNoteOption :: User -> IO ()
+editNoteOption user@(User email _) = do
+    notes <- getListOfNotes email
+    putStrLn "Select a note to edit (or q to go back):"
+    printNotes notes
+    noteIndex <- getNoteIndex notes
 
-getNoteTitleFromNote :: Note -> IO String
-getNoteTitleFromNote note = return (title note)
+    if noteIndex == 0 then mainMenu user else do
+        let title = notes !! (noteIndex - 1)
+        note <- getNote email title
+        case note of
+            Nothing -> mainMenu user
+            Just n@(Note _ content _) -> do
+                printNote n
+                newTitle <- editNoteTitle title
+                newContent <- editNoteContent content
+                res <- editNote title $ Note newTitle newContent email
+                if res
+                    then putStrLn "Note updated!" >> mainMenu user
+                    else putStrLn "Note could not be updated. Please try again." >> editNoteOption user
 
+viewNotesOption :: User -> IO ()
+viewNotesOption user@(User email _) = do
+    notes <- getListOfNotes email
+    putStrLn "Select a note to view (or q to go back):"
+    printNotes notes
+    noteIndex <- getNoteIndex notes
+    if noteIndex == 0
+        then mainMenu user
+        else do
+            let title = notes !! (noteIndex - 1)
+            (note, wordCount, topWords) <- getNoteInfo email title
+            case note of
+                Nothing -> putStrLn "Could not open note. Please try again!" >> viewNotesOption user
+                Just n -> do
+                    printNote n
+                    printNoteInfo wordCount topWords
+                    mainMenu user
+
+searchNotesOption :: User -> IO ()
+searchNotesOption user@(User email _) = do
+    putStrLn "Enter a search term/phrase:"
+    searchTerm <- getLine
+    notes <- searchNotesByPhrase email searchTerm
+    if null notes
+        then putStrLn "No notes contain your search term." >> mainMenu user
+        else do
+            putStrLn "The following notes contain your search term:"
+            printNotes notes
+            mainMenu user
+
+deleteNoteOption :: User -> IO ()
+deleteNoteOption user@(User email _) = do
+    notes <- getListOfNotes email
+    putStrLn "Select a note to delete (or q to go back):"
+    printNotes notes
+    noteIndex <- getNoteIndex notes
+    if noteIndex == 0
+        then mainMenu user
+        else do
+            let title = notes !! (noteIndex - 1)
+            res <- deleteNote email title
+            if res
+                then putStrLn "Note deleted!" >> mainMenu user
+                else putStrLn "Note could not be deleted. Please try again." >> deleteNoteOption user
+
+shareNoteOption :: User -> IO ()
+shareNoteOption user@(User email _) = do
+    notes <- getListOfNotes email
+    putStrLn "Select a note to share (or q to go back):"
+    printNotes notes
+    noteIndex <- getNoteIndex notes
+    if noteIndex == 0
+        then mainMenu user
+        else do
+            let title = notes !! (noteIndex - 1)
+            putStrLn "Enter the email address of the user you want to share the note with:"
+            recipientEmail <- getLine
+            res <- shareNote email title recipientEmail
+            if res
+                then putStrLn "Note shared!" >> mainMenu user
+                else putStrLn "Note could not be shared. Please try again." >> shareNoteOption user
+
+
+{- 
+    IO helper functions
+-}
+getNoteTitle :: String -> IO String
+getNoteTitle email = do
+    putStrLn "Enter the note's title:"
+    title <- getLine
+    noteExists <- checkIfNoteExists email title
+    if noteExists
+        then putStrLn "A note with that title already exists. Please try again." >> getNoteTitle email
+        else return title
 
 getNoteContent :: IO String
 getNoteContent = do
-    putStrLn "Enter the note content:"
-    getLine
+    putStrLn "Enter the note's content. To finish, type :q on a new line:"
+    multiLineInput
 
-getNoteIndex :: [Note] -> IO Int
-getNoteIndex notes = do
-    putStrLn "Select a note to edit or delete:"
-    printNotes notes
-    putStr "Enter note number: "
+multiLineInput :: IO String
+multiLineInput = do
     input <- getLine
-    case readMaybe input of
-        Just index -> if index >= 0 && index <= length notes
-            then return index
-            else putStrLn "Invalid note number." >> getNoteIndex notes
-        Nothing -> putStrLn "Invalid input. Enter a number." >> getNoteIndex notes
+    if input == ":q"
+        then return ""
+        else do
+            rest <- multiLineInput
+            return $ input ++ " \n" ++ rest
 
-printNotes :: [Note] -> IO ()
+printNote :: Note -> IO ()
+printNote note = do
+    putStrLn "-- Your note --"
+    putStrLn $ "Title: " ++ title note
+    putStrLn $ "Content: \n" ++ content note
+
+printNotes :: [String] -> IO ()
 printNotes notes = do
-    putStrLn "Your notes:"
-    mapM_ printNoteWithIndex (zip [0..] notes)
+    mapM_ printNoteWithIndex (zip [1..] notes)
 
-printNoteWithIndex :: (Int, Note) -> IO ()
-printNoteWithIndex (index, note) = do
-    putStrLn $ show index ++ ". " ++ title note
-    putStrLn $ content note
+printNoteInfo :: Int -> [(String, Int)] -> IO ()
+printNoteInfo wordCount topWords = do
+    putStrLn "-- Note info --"
+    putStrLn $ "Word count: " ++ show wordCount
+    putStrLn "5 most used words:"
+    mapM_ printWordWithCount topWords
     putStrLn ""
 
-getEmail :: IO String
-getEmail = do
-    putStrLn "Please enter your email:"         
-    getLine
+printWordWithCount :: (String, Int) -> IO ()
+printWordWithCount (word, count) = putStrLn $ word ++ ": " ++ show count
 
-getTime :: IO String 
-getTime = do
-  putStrLn "Enter today's date: "
-  getLine
+getNoteIndex :: [String] -> IO Int
+getNoteIndex notes = do
+    putStrLn "Enter note number: "
+    input <- getLine
+    if input == "q"
+        then return 0
+        else case readMaybe input of
+            Just index -> if index >= 1 && index <= length notes
+                then return index
+                else putStrLn "\nInvalid note number." >> getNoteIndex notes
+            Nothing -> putStrLn "\nInvalid input. Please enter a number." >> getNoteIndex notes
 
-{- editNoteTitle :: IO String
-editNoteTitle = do
-    putStrLn "Would you like to edit the title? (Enter Y for yes, N for no)"
-    response <- getLine
-    if (response == "Y")
-      then
-        getNoteTitle
-        else if (response == "N")
-          then
-            ???     
-            -}   
+printNoteWithIndex :: (Int, String) -> IO ()
+printNoteWithIndex (index, note) = do
+    putStrLn $ show index ++ ". " ++ note
 
 
-findNoteTitle :: IO String
-findNoteTitle = do
-  putStrLn "Please enter the title of the note you would like to select: "
-  getLine
-    
-editNoteTitle :: IO String
-editNoteTitle = do
-  putStrLn "Please enter the new title for your note: "
-  getLine
+editNoteTitle :: String -> IO String
+editNoteTitle title = do
+    putStrLn "Enter the new title (or press enter to keep the same title):"
+    line <- getLine
+    if line == ""
+        then return title
+        else return line
 
+editNoteContent :: String -> IO String
+editNoteContent content = do
+    putStrLn "Enter the new content. To finish, type :q on a new line (or press enter to skip):"
+    line <- getLine
+    if line == ""
+        then return content
+        else do
+            rest <- multiLineInput
+            return $ line ++ " \n" ++ rest
 
-editNoteContent :: IO String
-editNoteContent = do
-  putStrLn "Please enter the new content you would like to save for this note: "
-  getLine
-    
 
