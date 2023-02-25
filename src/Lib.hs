@@ -27,12 +27,13 @@ data MenuOption = CreateNote | EditNote | DeleteNote | Quit deriving (Show, Eq)
 notesApp :: IO ()
 notesApp = do
     putStrLn "Welcome to the notes app!"
+    user <- loginOrRegisterUser
     menuOption <- getUserOption
     case menuOption of
         CreateNote -> do
             email <- getEmail
             password <- getPassword
-            user <- createUser email password
+            -- user <- createUser email password
             noteTitle <- getNoteTitle
             noteContent <- getNoteContent
             createdBy <- getTime
@@ -63,6 +64,29 @@ notesApp = do
             notesApp
         Quit -> do
             putStrLn "You have quit the notes app"
+
+loginOrRegisterUser :: IO User
+loginOrRegisterUser = do
+    putStrLn "Please choose an option:"
+    putStrLn "1. Login"
+    putStrLn "2. Register"
+    input <- getLine
+    case input of
+        "1" -> do
+            email <- getEmail
+            password <- getPassword
+            maybeUser <- getUserFromDB email
+            case maybeUser of
+              Just user -> putStrLn "You are logged in!" >> return user
+              Nothing -> putStrLn "Invalid email or password." >> loginOrRegisterUser
+
+        "2" -> do
+            email <- getEmail
+            password <- getPassword
+            user <- createUser email password
+            putStrLn "User created!"
+            return user
+        _ -> putStrLn "Invalid input." >> loginOrRegisterUser
 
 
 getUserOption :: IO MenuOption
