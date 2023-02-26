@@ -83,7 +83,7 @@ createNoteOption user@(User email _) = do
 editNoteOption :: User -> IO ()
 editNoteOption user@(User email _) = do
     notes <- getListOfNotes email
-    putStrLn "Select a note to edit (or q to go back):"
+    putStrLn "Select a note to edit:"
     printNotes notes
     noteIndex <- getNoteIndex notes
 
@@ -92,11 +92,11 @@ editNoteOption user@(User email _) = do
         note <- getNote email title
         case note of
             Nothing -> mainMenu user
-            Just n@(Note _ content _) -> do
+            Just n@(Note _ content _ _) -> do
                 printNote n
                 newTitle <- editNoteTitle title
                 newContent <- editNoteContent content
-                res <- editNote title $ Note newTitle newContent email
+                res <- editNote title $ Note newTitle newContent email ""
                 if res
                     then putStrLn "Note updated!" >> mainMenu user
                     else putStrLn "Note could not be updated. Please try again." >> editNoteOption user
@@ -107,7 +107,7 @@ editNoteOption user@(User email _) = do
 viewNotesOption :: User -> IO ()
 viewNotesOption user@(User email _) = do
     notes <- getListOfNotes email
-    putStrLn "Select a note to view (or q to go back):"
+    putStrLn "Select a note to view:"
     printNotes notes
     noteIndex <- getNoteIndex notes
     if noteIndex == 0
@@ -117,9 +117,9 @@ viewNotesOption user@(User email _) = do
             (note, wordCount, topWords) <- getNoteInfo email title
             case note of
                 Nothing -> putStrLn "Could not open note. Please try again!" >> viewNotesOption user
-                Just n -> do
+                Just n@(Note _ _ _ date) -> do
                     printNote n
-                    printNoteInfo wordCount topWords
+                    printNoteInfo wordCount topWords date
                     mainMenu user
 
 {-
@@ -145,7 +145,7 @@ searchNotesOption user@(User email _) = do
 deleteNoteOption :: User -> IO ()
 deleteNoteOption user@(User email _) = do
     notes <- getListOfNotes email
-    putStrLn "Select a note to delete (or q to go back):"
+    putStrLn "Select a note to delete:"
     printNotes notes
     noteIndex <- getNoteIndex notes
     if noteIndex == 0
@@ -165,7 +165,7 @@ deleteNoteOption user@(User email _) = do
 shareNoteOption :: User -> IO ()
 shareNoteOption user@(User email _) = do
     notes <- getListOfNotes email
-    putStrLn "Select a note to share (or q to go back):"
+    putStrLn "Select a note to share:"
     printNotes notes
     noteIndex <- getNoteIndex notes
     if noteIndex == 0
@@ -216,9 +216,10 @@ printNotes :: [String] -> IO ()
 printNotes notes = do
     mapM_ printNoteWithIndex (zip [1..] notes)
 
-printNoteInfo :: Int -> [(String, Int)] -> IO ()
-printNoteInfo wordCount topWords = do
+printNoteInfo :: Int -> [(String, Int)] -> String -> IO ()
+printNoteInfo wordCount topWords date = do
     putStrLn "-- Note info --"
+    putStrLn $ "Date last modified: " ++ date
     putStrLn $ "Word count: " ++ show wordCount
     putStrLn "5 most used words:"
     mapM_ printWordWithCount topWords
@@ -229,7 +230,7 @@ printWordWithCount (word, count) = putStrLn $ word ++ ": " ++ show count
 
 getNoteIndex :: [String] -> IO Int
 getNoteIndex notes = do
-    putStrLn "Enter note number: "
+    putStrLn "Enter the note's number (or q to go back): "
     input <- getLine
     if input == "q"
         then return 0
