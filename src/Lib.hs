@@ -24,11 +24,14 @@ notesApp = do
     user <- loginOrRegisterUser
     mainMenu user
 
+{-
+    Present user with options available in the notes app: create, edit, view, search, delete, share, and quit
+-}
 getUserOption :: IO MenuOption
 getUserOption = do
     putStrLn "What would you like to do?"
     putStrLn 
-        "1. Create a note  |  2. Edit a note  | 3. View notes  |  4. Search notes  |\
+        "1. Create a note  |  2. Edit a note  | 3. View notes  |  4. Search notes  |\  
         \  5. Delete a note  | 6. Share a note |  7. Quit"
     input <- getLine
     case input of
@@ -43,6 +46,9 @@ getUserOption = do
             putStrLn "Invalid input, please try again."
             getUserOption
 
+{-
+    Read user input
+-}
 mainMenu :: User -> IO ()
 mainMenu user = do
     menuOption <- getUserOption
@@ -70,7 +76,10 @@ createNoteOption user@(User email _) = do
         Nothing -> putStrLn "Note could not be saved. Please try again." >> mainMenu user
         Just _ ->  putStrLn ("The note titled \"" ++ noteTitle ++ "\" has been created!\n") >> mainMenu user
 
-
+{- 
+    Handler to edit a note. User can select an exisitng note associated with their email by title and 
+    edit either the title or content of the note. 
+-}
 editNoteOption :: User -> IO ()
 editNoteOption user@(User email _) = do
     notes <- getListOfNotes email
@@ -92,6 +101,9 @@ editNoteOption user@(User email _) = do
                     then putStrLn "Note updated!" >> mainMenu user
                     else putStrLn "Note could not be updated. Please try again." >> editNoteOption user
 
+{- 
+    Handler for option to view notes. User can input a title associated with their email and that note will be printed 
+-}
 viewNotesOption :: User -> IO ()
 viewNotesOption user@(User email _) = do
     notes <- getListOfNotes email
@@ -110,6 +122,10 @@ viewNotesOption user@(User email _) = do
                     printNoteInfo wordCount topWords
                     mainMenu user
 
+{-
+    Handler for option to search notes. User can input a term or phrase and any notes containing that not
+    or phrase witll be printed
+-}
 searchNotesOption :: User -> IO ()
 searchNotesOption user@(User email _) = do
     putStrLn "Enter a search term/phrase:"
@@ -122,6 +138,10 @@ searchNotesOption user@(User email _) = do
             printNotes notes
             mainMenu user
 
+{-
+    Handler for delete note option. Allows user to input title of note they would like deleted. If a note with 
+    that title is associated with their email it will be deleted
+-}
 deleteNoteOption :: User -> IO ()
 deleteNoteOption user@(User email _) = do
     notes <- getListOfNotes email
@@ -137,6 +157,11 @@ deleteNoteOption user@(User email _) = do
                 then putStrLn "Note deleted!" >> mainMenu user
                 else putStrLn "Note could not be deleted. Please try again." >> deleteNoteOption user
 
+{-
+    Handler for share notes option. Allows a user to select a note associated with their email by title and then 
+    input a different email address they would like to share the note to. If the other email also exists in the database, 
+    the note will be shared.
+-}
 shareNoteOption :: User -> IO ()
 shareNoteOption user@(User email _) = do
     notes <- getListOfNotes email
