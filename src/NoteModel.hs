@@ -2,13 +2,13 @@
 
 module NoteModel (
     Note(..),
-    getNoteFromDB,
-    getAllNotesFromDB,
-    saveNoteToDB,
-    deleteNoteFromDB,
-    replaceNoteInDB,
-    transferNoteInDB,
-    searchNotesByPhraseDB
+    getNoteFromDB,              -- getNoteFromDB :: String -> String -> IO (Maybe Note)
+    getAllNotesFromDB,          -- getAllNotesFromDB :: String -> IO [Note]
+    saveNoteToDB,               -- saveNoteToDB :: Note -> IO Bool
+    deleteNoteFromDB,           -- deleteNoteFromDB :: String -> String -> IO ()
+    replaceNoteInDB,            -- replaceNoteInDB :: String -> Note -> IO ()
+    transferNoteInDB,           -- transferNoteInDB :: Note -> String -> IO ()
+    searchNotesByPhraseDB       -- searchNotesByPhraseDB :: String -> String -> IO [Note]
 ) where
 
 import Database.SQLite.Simple

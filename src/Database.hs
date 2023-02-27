@@ -1,12 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database (
-    setupDB,
-    resetDB
+    setupDB,        -- setupDB :: IO ()
+    resetDB         -- resetDB :: IO ()
 ) where
 
 import Database.SQLite.Simple
 
+{-
+    Set up database to store notes created by users
+-}
 setupDB :: IO ()
 setupDB = do
     conn <- open "notes.db"
@@ -21,6 +24,9 @@ setupDB = do
         \FOREIGN KEY (created_by) REFERENCES users (email) ON DELETE CASCADE ON UPDATE NO ACTION)"
     close conn
 
+{-
+    Clear all existing users and notes from the database
+-}
 resetDB :: IO ()
 resetDB = do
     conn <- open "notes.db"

@@ -6,14 +6,15 @@ import Text.Read (readMaybe)
 import Auth (loginOrRegisterUser)
 import NoteModel (Note(..))
 import Note (
-    createNote,
-    checkIfNoteExists,
-    getListOfNotes,
-    getNote,
-    getNoteInfo,
-    searchNotesByPhrase,
-    editNote,
-    deleteNote, shareNote)
+    createNote,                 -- createNote :: User -> String -> String -> IO (Maybe Note)
+    checkIfNoteExists,          -- checkIfNoteExists :: String -> String -> IO Bool 
+    getListOfNotes,             -- getListOfNotes :: String -> IO [String]
+    getNote,                    -- getNote :: String -> String -> IO (Maybe Note)
+    getNoteInfo,                -- getNoteInfo :: String -> String -> IO (Maybe Note, Int, [(String, Int)])
+    searchNotesByPhrase,        -- searchNotesByPhrase :: String -> String -> IO [String]
+    editNote,                   -- editNote :: String -> Note -> IO Bool
+    deleteNote,                 -- deleteNote :: String -> String -> IO Bool
+    shareNote)                  -- shareNote :: String -> String -> String -> IO Bool
 import UserModel (User(..))
 
 data MenuOption = CreateNote | EditNote | ViewNotes | SearchNotes | DeleteNote | ShareNote | Quit deriving (Show, Eq)
@@ -35,12 +36,12 @@ getUserOption = do
         \  5. Delete a note  | 6. Share a note |  7. Quit"
     input <- getLine
     case input of
-        "1" -> return CreateNote
-        "2" -> return EditNote
-        "3" -> return ViewNotes
-        "4" -> return SearchNotes
-        "5" -> return DeleteNote
-        "6" -> return ShareNote
+        "1" -> return CreateNote      
+        "2" -> return EditNote        
+        "3" -> return ViewNotes       
+        "4" -> return SearchNotes     
+        "5" -> return DeleteNote      
+        "6" -> return ShareNote       
         "7" -> return Quit
         _ -> do
             putStrLn "Invalid input, please try again."
@@ -183,6 +184,11 @@ shareNoteOption user@(User email _) = do
 {- 
     IO helper functions
 -}
+
+{-
+    Allow the user to enter the title for a note.  The user is not able to create multiple notes with 
+    the same title.
+-}
 getNoteTitle :: String -> IO String
 getNoteTitle email = do
     putStrLn "Enter the note's title:"
@@ -192,11 +198,18 @@ getNoteTitle email = do
         then putStrLn "A note with that title already exists. Please try again." >> getNoteTitle email
         else return title
 
+{-
+    Allow user to enter content for the note
+-}
 getNoteContent :: IO String
 getNoteContent = do
     putStrLn "Enter the note's content. To finish, type :q on a new line:"
     multiLineInput
 
+
+{-
+    Allow user to enter multiple lines of text. The user will write :q to indicate they are done writing content
+-}
 multiLineInput :: IO String
 multiLineInput = do
     input <- getLine
@@ -206,16 +219,26 @@ multiLineInput = do
             rest <- multiLineInput
             return $ input ++ " \n" ++ rest
 
+{-
+    Print the title and content of a note
+-}
 printNote :: Note -> IO ()
 printNote note = do
     putStrLn "-- Your note --"
     putStrLn $ "Title: " ++ title note
     putStrLn $ "Content: \n" ++ content note
 
+{-
+    Prints multiple notes
+-}
 printNotes :: [String] -> IO ()
 printNotes notes = do
     mapM_ printNoteWithIndex (zip [1..] notes)
 
+{-
+    Prints the information associated with a note including the date it was last modified, the word count, 
+    and the five most used words in the note.
+-}
 printNoteInfo :: Int -> [(String, Int)] -> String -> IO ()
 printNoteInfo wordCount topWords date = do
     putStrLn "-- Note info --"
@@ -225,9 +248,15 @@ printNoteInfo wordCount topWords date = do
     mapM_ printWordWithCount topWords
     putStrLn ""
 
+{-
+    Print the number of times a word was used
+-}
 printWordWithCount :: (String, Int) -> IO ()
 printWordWithCount (word, count) = putStrLn $ word ++ ": " ++ show count
 
+{-
+    Allow user to enter the index of the note they would like to select
+-}
 getNoteIndex :: [String] -> IO Int
 getNoteIndex notes = do
     putStrLn "Enter the note's number (or q to go back): "
@@ -240,11 +269,16 @@ getNoteIndex notes = do
                 else putStrLn "\nInvalid note number." >> getNoteIndex notes
             Nothing -> putStrLn "\nInvalid input. Please enter a number." >> getNoteIndex notes
 
+{-
+    Print the note and it's index
+-}
 printNoteWithIndex :: (Int, String) -> IO ()
 printNoteWithIndex (index, note) = do
     putStrLn $ show index ++ ". " ++ note
 
-
+{-
+    Allow user to enter a new title for an existing note
+-}
 editNoteTitle :: String -> IO String
 editNoteTitle title = do
     putStrLn "Enter the new title (or press enter to keep the same title):"
@@ -253,6 +287,9 @@ editNoteTitle title = do
         then return title
         else return line
 
+{-
+    Allow user to enter new content for an existing note
+-}
 editNoteContent :: String -> IO String
 editNoteContent content = do
     putStrLn "Enter the new content. To finish, type :q on a new line (or press enter to skip):"
