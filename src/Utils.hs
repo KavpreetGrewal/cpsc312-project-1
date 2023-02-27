@@ -4,12 +4,14 @@ module Utils (
     getMostUsedWords,
     getUsernameFromEmail,
     checkEmailFormat,
-    checkLength
+    checkLength,
+    getTime
 ) where
 
 import qualified Data.Map as Map
 import Data.List (sortBy)
 import Data.Char (toLower)
+import Data.Time.Clock (getCurrentTime)
 
 cleanString :: String -> String
 cleanString [] = []
@@ -45,3 +47,8 @@ checkEmailFormat email = '@' `elem` email
 checkLength :: String -> Int -> Int -> Bool
 checkLength string minL maxL = len <= maxL && len >= minL
     where len = length string
+
+getTime :: IO String
+getTime = do
+    time <- getCurrentTime
+    return $ take 19 $ show time
