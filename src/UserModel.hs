@@ -12,7 +12,8 @@ module UserModel (
 import Database.SQLite.Simple
 
 {-
-    Create User data type
+    User data type. This is the data type that is used to represent a user in the database.
+    Consists of an email and password (which is hashed before being saved to the database).
 -}
 data User = User {
     email :: String,

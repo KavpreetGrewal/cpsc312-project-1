@@ -9,6 +9,9 @@ import qualified Data.ByteString.Char8 as BS
 import UserModel (User(..), saveUserToDB, loginUserFromDB)
 
 
+{-
+    Hash a password using SHA256 before saving it to the database
+-}
 hashPassword :: String -> IO String
 hashPassword password = do
     let bytestring = BS.pack password

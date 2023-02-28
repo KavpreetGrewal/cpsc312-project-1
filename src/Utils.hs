@@ -30,7 +30,7 @@ getWordCount :: String -> Int
 getWordCount content = length $ words content
 
 {-
-    Add all words to a map
+    Helper function to add all words to a map
 -}
 addWordsToMap :: Map.Map String Int -> [String] -> Map.Map String Int
 addWordsToMap m [] = m
@@ -39,7 +39,7 @@ addWordsToMap m (word:lst) = let
     in addWordsToMap (Map.insert word (count + 1) m) lst
 
 {-
-    Find the five most used words
+    Find the five most used words in the note
 -}
 getMostUsedWords :: String -> [(String, Int)]
 getMostUsedWords [] = []

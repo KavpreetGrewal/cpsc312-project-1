@@ -14,7 +14,8 @@ module NoteModel (
 import Database.SQLite.Simple
 
 {-
-    Create not data type
+    A note data type. This is the data type that is used to represent a note in the database.
+    Consists of a title, content, the email of the user who created it, and the date it was created.
 -}
 data Note = Note {
     title :: String,

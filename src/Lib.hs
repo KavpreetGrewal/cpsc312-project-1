@@ -299,5 +299,3 @@ editNoteContent content = do
         else do
             rest <- multiLineInput
             return $ line ++ " \n" ++ rest
-
-
