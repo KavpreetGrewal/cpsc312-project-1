@@ -2,15 +2,18 @@
 
 module UserModel (
     User(..),
-    getUserFromDB,
-    loginUserFromDB,
-    saveUserToDB,
-    deleteUserFromDB,
-    updateUserInDB  
+    getUserFromDB,          -- getUserFromDB :: String -> IO (Maybe User)
+    loginUserFromDB,        -- loginUserFromDB :: String -> String -> IO (Maybe User)
+    saveUserToDB,           -- saveUserToDB :: User -> IO Bool
+    deleteUserFromDB,       -- deleteUserFromDB :: String -> IO Bool
+    updateUserInDB          -- updateUserInDB :: User -> IO Bool
 ) where
 
 import Database.SQLite.Simple
 
+{-
+    Create User data type
+-}
 data User = User {
     email :: String,
     password :: String
@@ -19,7 +22,9 @@ data User = User {
 instance FromRow User where fromRow = User <$> field <*> field
 instance ToRow User where toRow (User email password) = toRow (email, password)
 
-
+{-
+    Retrieve a user from the database
+-}
 getUserFromDB :: String -> IO (Maybe User)
 getUserFromDB email = do
     conn <- open "notes.db"
@@ -29,6 +34,9 @@ getUserFromDB email = do
         [] -> Nothing
         (user:_) -> Just user
 
+{-
+    Select a user from the database matching a particular login
+-}
 loginUserFromDB :: String -> String -> IO (Maybe User)
 loginUserFromDB email password= do
     conn <- open "notes.db"
@@ -38,6 +46,9 @@ loginUserFromDB email password= do
         [] -> Nothing
         (user:_) -> Just user
 
+{-
+    Insert a user into the database
+-}
 saveUserToDB :: User -> IO Bool
 saveUserToDB (User email password) = do
     conn <- open "notes.db"
@@ -49,6 +60,9 @@ saveUserToDB (User email password) = do
             close conn
             return True
 
+{-
+    Delete a user from the database
+-}
 deleteUserFromDB :: String -> IO Bool
 deleteUserFromDB email = do
     conn <- open "notes.db"
@@ -60,6 +74,9 @@ deleteUserFromDB email = do
             return True
         Nothing -> return False
 
+{-
+    Update a user in the database with a new email and password
+-}
 updateUserInDB :: User -> IO Bool
 updateUserInDB (User email password) = do
     conn <- open "notes.db"

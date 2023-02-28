@@ -1,7 +1,7 @@
 module User (
-    createUser,
-    loginUser
-) where
+    createUser,         -- createUser :: String -> String -> IO (Maybe User)
+    loginUser           -- loginUser :: String -> String -> IO (Maybe User)
+) where                 
 
 import Crypto.Hash (SHA256 (..), hash, Digest)
 import qualified Data.ByteString.Char8 as BS
@@ -15,6 +15,9 @@ hashPassword password = do
     let hashedBytes = hash bytestring :: Digest SHA256
     return $ show hashedBytes
 
+{-
+    Create a new user and save it to the database
+-}
 createUser :: String -> String -> IO (Maybe User)
 createUser email password = do
     hashedPassword <- hashPassword password
@@ -22,6 +25,9 @@ createUser email password = do
     res <- saveUserToDB user
     (if res then return $ Just user else return Nothing)
 
+{-
+    Login a user that exists in the database
+-}
 loginUser :: String -> String -> IO (Maybe User)
 loginUser email password = do
     hashedPassword <- hashPassword password

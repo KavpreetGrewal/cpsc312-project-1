@@ -13,6 +13,9 @@ module NoteModel (
 
 import Database.SQLite.Simple
 
+{-
+    Create not data type
+-}
 data Note = Note {
     title :: String,
     content :: String,
@@ -23,6 +26,9 @@ data Note = Note {
 instance FromRow Note where fromRow = Note <$> field <*> field <*> field <*> field
 instance ToRow Note where toRow (Note title content createdBy date) = toRow (title, content, createdBy, date)
 
+{-
+    Retrieve a note from the database
+-}
 getNoteFromDB :: String -> String -> IO (Maybe Note)
 getNoteFromDB email title = do
     conn <- open "notes.db"
@@ -32,6 +38,9 @@ getNoteFromDB email title = do
         [] -> Nothing
         (note:_) -> Just note
 
+{-
+    Retrieve all notes from the database
+-}
 getAllNotesFromDB :: String -> IO [Note]
 getAllNotesFromDB email = do
     conn <- open "notes.db"
@@ -39,6 +48,9 @@ getAllNotesFromDB email = do
     close conn
     return r
 
+{-
+    Save a note to the database
+-}
 saveNoteToDB :: Note -> IO Bool
 saveNoteToDB (Note title content createdBy date) = do
     conn <- open "notes.db"
@@ -52,12 +64,18 @@ saveNoteToDB (Note title content createdBy date) = do
             close conn
             return True
 
+{-
+    Delete a note from the database
+-}
 deleteNoteFromDB :: String -> String -> IO ()
 deleteNoteFromDB email title = do
     conn <- open "notes.db"
     execute conn "DELETE FROM notes WHERE created_by = ? AND title = ?" (email, title)
     close conn
 
+{-
+    Replace an exisiting note in the database with a new (edited) note
+-}
 replaceNoteInDB :: String -> Note -> IO ()
 replaceNoteInDB oldTitle (Note title content createdBy date) = do
     conn <- open "notes.db"
@@ -66,7 +84,9 @@ replaceNoteInDB oldTitle (Note title content createdBy date) = do
         (title, content, date, createdBy, oldTitle)
     close conn
 
-
+{-
+    Transfer a note in the database from one user to another in the database
+-}
 transferNoteInDB :: Note -> String -> IO ()
 transferNoteInDB (Note title content _ date) recepientEmail = do
     conn <- open "notes.db"
@@ -75,6 +95,9 @@ transferNoteInDB (Note title content _ date) recepientEmail = do
         (Note title content recepientEmail date)
     close conn
 
+{-
+    Select all note in the database containing a particular phrase 
+-}
 searchNotesByPhraseDB :: String -> String -> IO [Note]
 searchNotesByPhraseDB email phrase = do
     conn <- open "notes.db"
