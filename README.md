@@ -34,3 +34,15 @@ The following commands are available in the notes app:
 - `4` - Search for an existing note. You will be prompted to enter a search term or phrase. All notes containing the search term or phrase will be listed.
 - `5` - Delete an existing note. You will be prompted to enter the title of the note you wish to delete. The note will be removed from the database.
 - `6` - Share an existing note. You will be prompted to enter the title of the note you wish to share and then the email address of the user you wish to share the note with. The note will be shared with the user and they will be able to view it in their notes app.
+
+## License
+Shield: [![CC BY 4.0][cc-by-shield]][cc-by]
+
+This work is licensed under a
+[Creative Commons Attribution 4.0 International License][cc-by].
+
+[![CC BY 4.0][cc-by-image]][cc-by]
+
+[cc-by]: http://creativecommons.org/licenses/by/4.0/
+[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
+[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg
