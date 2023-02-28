@@ -113,11 +113,12 @@ shareNote email title recepientEmail = do
     note <- getNoteFromDB email title
     if email == recepientEmail then return False
     else case note of
-        Just n -> do
+        Just (Note title' content createdBy date) -> do
             user <- getUserFromDB recepientEmail
             case user of
                 Nothing -> return False
                 Just _ -> do
-                    transferNoteInDB n recepientEmail
+                    let newTitle = title' ++ " (shared by " ++ email ++ ")"
+                    transferNoteInDB (Note newTitle content createdBy date) recepientEmail
                     return True
         Nothing -> return False
